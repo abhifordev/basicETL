@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ETL Admin Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 14px;
+    }
+    th {
+      background: #eee;
+    }
+    .status {
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📊 ETL Admin Dashboard</h1>
+<p class="status">Live data (auto-refresh every 10 seconds)</p>
+
+<div class="card">
+  <h2>Customers</h2>
+  <p>Total Records: <span id="customerCount">Loading...</span></p>
+  <table id="customersTable"></table>
+</div>
+
+<div class="card">
+  <h2>Orders</h2>
+  <p>Total Records: <span id="orderCount">Loading...</span></p>
+  <table id="ordersTable"></table>
+</div>
+
+<script>
+const BASE_URL =
+  "https://raw.githubusercontent.com/abhifordev/basicETL/main/";
+
+function loadCSV(file, tableId, countId) {
+  fetch(BASE_URL + file + "?t=" + Date.now())
+    .then(res => res.text())
+    .then(text => {
+      const rows = text.trim().split("\n").map(r => r.split(","));
+      document.getElementById(countId).innerText = rows.length - 1;
+
+      let html = "<tr>" +
+        rows[0].map(h => `<th>${h}</th>`).join("") +
+        "</tr>";
+
+      rows.slice(-5).forEach(row => {
+        html += "<tr>" +
+          row.map(c => `<td>${c}</td>`).join("") +
+          "</tr>";
+      });
+
+      document.getElementById(tableId).innerHTML = html;
+    });
+}
+
+function refresh() {
+  loadCSV("customers_clean.csv", "customersTable", "customerCount");
+  loadCSV("orders_clean.csv", "ordersTable", "orderCount");
+}
+
+refresh();
+setInterval(refresh, 10000);
+</script>
+
+</body>
+</html>
